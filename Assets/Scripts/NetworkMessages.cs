@@ -4,49 +4,101 @@ using UnityEngine;
 
 namespace NetworkMessages
 {
-    public enum Commands{
+    public enum Commands
+    {
+        NEW_CLIENT,
+        LIST_CLIENT,
         PLAYER_UPDATE,
         SERVER_UPDATE,
-        HANDSHAKE,
-        PLAYER_INPUT
+        MY_ID,
+        DROP_CLIENT,
+        HeartBeat,
     }
 
     [System.Serializable]
-    public class NetworkHeader{
+    public class NetworkHeader
+    {
         public Commands cmd;
     }
 
     [System.Serializable]
-    public class HandshakeMsg:NetworkHeader{
+    public class NewClientMsg:NetworkHeader
+    {
         public NetworkObjects.NetworkPlayer player;
-        public HandshakeMsg(){      // Constructor
-            cmd = Commands.HANDSHAKE;
+
+        public NewClientMsg(){ 
+            cmd = Commands.NEW_CLIENT;
             player = new NetworkObjects.NetworkPlayer();
         }
     }
-    
+
     [System.Serializable]
-    public class PlayerUpdateMsg:NetworkHeader{
-        public NetworkObjects.NetworkPlayer player;
-        public PlayerUpdateMsg(){      // Constructor
+    public class PlayerUpdateMsg:NetworkHeader
+    {
+        public NetworkObjects.NetworkPlayer[] updatedPlayers;
+
+        public PlayerUpdateMsg()
+        {
             cmd = Commands.PLAYER_UPDATE;
-            player = new NetworkObjects.NetworkPlayer();
+        }
+
+        public PlayerUpdateMsg(List<NetworkObjects.NetworkPlayer> players)
+        {
+            cmd = Commands.PLAYER_UPDATE;
+            updatedPlayers = new NetworkObjects.NetworkPlayer[players.Count];
+            for (int i = 0; i < players.Count; i++)
+            {
+                updatedPlayers[i] = players[i];
+            }
         }
     };
 
-    public class PlayerInputMsg:NetworkHeader{
-        public Input myInput;
-        public PlayerInputMsg(){
-            cmd = Commands.PLAYER_INPUT;
-            myInput = new Input();
+    [System.Serializable]
+    public class  ServerUpdateMsg:NetworkHeader
+    {
+        public NetworkObjects.NetworkPlayer player;
+
+        public ServerUpdateMsg()
+        {
+            player = new NetworkObjects.NetworkPlayer();
+            cmd = Commands.SERVER_UPDATE;
         }
     }
+
     [System.Serializable]
-    public class  ServerUpdateMsg:NetworkHeader{
-        public List<NetworkObjects.NetworkPlayer> players;
-        public ServerUpdateMsg(){      // Constructor
-            cmd = Commands.SERVER_UPDATE;
-            players = new List<NetworkObjects.NetworkPlayer>();
+    public class PlayerListMsg: NetworkHeader
+    {
+        public NetworkObjects.NetworkPlayer[] players;
+
+        public PlayerListMsg()
+        {
+            cmd = Commands.LIST_CLIENT;
+        }
+
+        public PlayerListMsg(List<NetworkObjects.NetworkPlayer> players)
+        {
+            cmd = Commands.LIST_CLIENT;
+            this.players = new NetworkObjects.NetworkPlayer[players.Count];
+            for(int i = 0; i < players.Count; i++)
+            {
+                this.players[i] = players[i];
+            }
+        }
+    }
+
+    [System.Serializable]
+    public class DropPlayerMsg : NetworkHeader
+    {
+        public NetworkObjects.NetworkPlayer[] players;
+
+        public DropPlayerMsg(List<NetworkObjects.NetworkPlayer> players)
+        {
+            cmd = Commands.DROP_CLIENT;
+            this.players = new NetworkObjects.NetworkPlayer[players.Count];
+            for (int i = 0; i < players.Count; i++)
+            {
+                this.players[i] = players[i];
+            }
         }
     }
 } 
@@ -54,16 +106,25 @@ namespace NetworkMessages
 namespace NetworkObjects
 {
     [System.Serializable]
-    public class NetworkObject{
+    public class NetworkObject
+    {
         public string id;
     }
-    [System.Serializable]
-    public class NetworkPlayer : NetworkObject{
-        public Color cubeColor;
-        public Vector3 cubPos;
 
-        public NetworkPlayer(){
-            cubeColor = new Color();
+    [System.Serializable]
+    public class NetworkPlayer : NetworkObject
+    {
+        public System.DateTime lastBeat;
+        public Color color;
+        public Vector3 position;
+        public Quaternion rotation;
+
+        public NetworkPlayer() 
+        {
+            lastBeat = System.DateTime.Now;
+            color = new Color(0,0,0);
+            position = new Vector3(0,0,0);
+            rotation.eulerAngles = new Vector3(0,0,0);
         }
     }
 }
